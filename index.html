@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Watch Movie</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #0d0d0f;
+      --surface: #16161a;
+      --border:  #2a2a32;
+      --accent:  #e8473f;
+      --text:    #f0eee8;
+      --muted:   #8a8794;
+      --radius:  10px;
+      --shopee:  #ee4d2d;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      padding: 14px 28px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 200;
+    }
+
+    .logo {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--text);
+      text-decoration: none;
+      letter-spacing: -0.5px;
+    }
+    .logo span { color: var(--accent); }
+
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 24px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      max-width: 420px;
+      width: 100%;
+      box-shadow: 0 8px 40px rgba(0,0,0,.5);
+    }
+
+    .poster-wrap {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 2/3;
+      overflow: hidden;
+      background: #111;
+    }
+
+    .poster-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform .4s ease;
+    }
+
+    .card:hover .poster-wrap img { transform: scale(1.04); }
+
+    .badge {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    .card-body { padding: 22px 24px 26px; }
+
+    .film-title {
+      font-size: 1.35rem;
+      font-weight: 800;
+      line-height: 1.3;
+      margin-bottom: 6px;
+    }
+
+    .film-meta {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 14px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .film-desc {
+      font-size: 0.88rem;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 22px;
+    }
+
+    .btn-play {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      padding: 13px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity .2s, transform .15s;
+    }
+
+    .btn-play:hover { opacity: .88; transform: translateY(-1px); }
+    .btn-play:active { transform: translateY(0); }
+
+    /* ── SHOPEE POP-UP (sebelum play) ── */
+    .shopee-popup {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.85);
+      z-index: 998;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      backdrop-filter: blur(4px);
+    }
+
+    .shopee-popup.open { display: flex; }
+
+    .shopee-box {
+      background: #fff;
+      border-radius: 16px;
+      overflow: hidden;
+      max-width: 340px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 16px 60px rgba(0,0,0,.6);
+      animation: popIn .3s ease;
+    }
+
+    @keyframes popIn {
+      from { transform: scale(.85); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+
+    .shopee-header {
+      background: var(--shopee);
+      padding: 18px 20px 14px;
+    }
+
+    .shopee-header .shopee-logo {
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: -0.5px;
+    }
+
+    .shopee-header p {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,.85);
+      margin-top: 2px;
+    }
+
+    .shopee-body { padding: 20px; }
+
+    .shopee-body h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #222;
+      margin-bottom: 6px;
+    }
+
+    .shopee-body p {
+      font-size: 0.85rem;
+      color: #666;
+      margin-bottom: 18px;
+      line-height: 1.5;
+    }
+
+    .btn-shopee {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      background: var(--shopee);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      margin-bottom: 10px;
+      transition: opacity .2s;
+    }
+
+    .btn-shopee:hover { opacity: .88; }
+
+    .btn-skip {
+      background: none;
+      border: none;
+      color: #aaa;
+      font-size: 0.82rem;
+      cursor: pointer;
+      padding: 4px;
+      transition: color .2s;
+    }
+
+    .btn-skip:hover { color: #555; }
+
+    /* ── MODAL PLAYER ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.88);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: #000;
+      border-radius: 12px;
+      overflow: hidden;
+      width: 100%;
+      max-width: 900px;
+      position: relative;
+      box-shadow: 0 16px 60px rgba(0,0,0,.8);
+      border: 1px solid var(--border);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .btn-close {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 1.4rem;
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 4px;
+      transition: color .2s;
+      flex-shrink: 0;
+    }
+
+    .btn-close:hover { color: var(--text); }
+
+    .player-box {
+      position: relative;
+      width: 100%;
+      padding-top: 56.25%;
+      background: #000;
+    }
+
+    .player-box iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    /* ── SHOPEE OVERLAY (timer saat nonton) ── */
+    .shopee-overlay {
+      display: none;
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,.82);
+      z-index: 10;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 14px;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .shopee-overlay.open { display: flex; }
+
+    .shopee-overlay .shopee-logo-sm {
+      font-size: 1.3rem;
+      font-weight: 900;
+      color: var(--shopee);
+    }
+
+    .shopee-overlay p {
+      font-size: 0.9rem;
+      color: #eee;
+      max-width: 260px;
+      line-height: 1.5;
+    }
+
+    .shopee-overlay .btn-shopee-sm {
+      display: inline-block;
+      padding: 10px 24px;
+      background: var(--shopee);
+      color: #fff;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      transition: opacity .2s;
+    }
+
+    .shopee-overlay .btn-shopee-sm:hover { opacity: .88; }
+
+    .shopee-overlay .btn-skip-sm {
+      background: none;
+      border: none;
+      color: #aaa;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .shopee-overlay .btn-skip-sm:hover { color: #fff; }
+
+    footer {
+      text-align: center;
+      padding: 14px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+    }
+
+    @media (max-width: 480px) {
+      .card { max-width: 100%; }
+      .film-title { font-size: 1.15rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="/">Watch<span>Movie</span></a>
+</header>
+
+<main>
+  <div class="card">
+    <div class="poster-wrap">
+      <img src="https://image.tmdb.org/t/p/w500/placeholder.jpg" alt="Poster Film" id="posterImg" />
+      <div class="badge">Now Playing</div>
+    </div>
+    <div class="card-body">
+      <div class="film-title" id="filmTitle">Judul Film Di Sini</div>
+      <div class="film-meta">
+        <span id="filmYear">2025</span>
+        <span id="filmGenre">Action · Drama</span>
+        <span id="filmDuration">2j 15m</span>
+      </div>
+      <div class="film-desc" id="filmDesc">
+        Tulis sinopsis singkat film di sini. Maksimal 2–3 kalimat supaya tidak terlalu panjang.
+      </div>
+      <button class="btn-play" onclick="showShopeePopup()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        Tonton Sekarang
+      </button>
+    </div>
+  </div>
+</main>
+
+<footer>WatchMovie &mdash; built on Cloudflare Pages</footer>
+
+<!-- ── SHOPEE POP-UP sebelum play ── -->
+<div class="shopee-popup" id="shopeePopup">
+  <div class="shopee-box">
+    <div class="shopee-header">
+      <div class="shopee-logo">shopee</div>
+      <p>Promo spesial menanti kamu!</p>
+    </div>
+    <div class="shopee-body">
+      <h3>🛍️ Belanja Hemat di Shopee</h3>
+      <p>Dapatkan promo & diskon terbaik hari ini. Belanja sekarang sebelum kehabisan!</p>
+      <a class="btn-shopee" href="https://s.shopee.co.id/80AGGlgazD" target="_blank" rel="noopener" onclick="afterShopeeClick()">
+        Lihat Promo Shopee →
+      </a>
+      <button class="btn-skip" onclick="skipShopee()">Lewati, langsung nonton</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL PLAYER ── -->
+<div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modalTitle">Judul Film</span>
+      <button class="btn-close" onclick="closePlayer()">✕</button>
+    </div>
+    <div class="player-box">
+      <iframe id="playerFrame" allowfullscreen allow="autoplay; fullscreen"></iframe>
+
+      <!-- Shopee overlay saat nonton -->
+      <div class="shopee-overlay" id="shopeeOverlay">
+        <div class="shopee-logo-sm">shopee</div>
+        <p>⏸ Sambil istirahat, cek promo Shopee dulu yuk!</p>
+        <a class="btn-shopee-sm" href="https://s.shopee.co.id/80AGGlgazD" target="_blank" rel="noopener">
+          Lihat Promo →
+        </a>
+        <button class="btn-skip-sm" onclick="closeShopeeOverlay()">Lanjut nonton</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ╔══════════════════════════════════════════════╗
+  // ║  EDIT BAGIAN INI SETIAP GANTI FILM           ║
+  // ╠══════════════════════════════════════════════╣
+  const FILM = {
+    title:    "THE MAZE RUNNER",
+    year:     "2014",
+    genre:    "Action · Distopia",
+    duration: "1j 53m",
+    desc:     "The Maze Runner mengisahkan Thomas yang hilang ingatan dan harus memimpin sekelompok remaja menerobos labirin monster untuk lolos dari eksperimen kejam organisasi WCKD.",
+    poster:   "https://imgur.com/a/gXOYAy7",
+    embedUrl: "https://playmogo.com/d/ek7s9ezuo27d",
+  };
+  // ╚══════════════════════════════════════════════╝
+
+  // Shopee overlay muncul tiap X menit (default: 5 menit)
+  const SHOPEE_INTERVAL_MS = 5 * 60 * 1000;
+
+  // Inject data film
+  document.getElementById('filmTitle').textContent    = FILM.title;
+  document.getElementById('filmYear').textContent     = FILM.year;
+  document.getElementById('filmGenre').textContent    = FILM.genre;
+  document.getElementById('filmDuration').textContent = FILM.duration;
+  document.getElementById('filmDesc').textContent     = FILM.desc;
+  document.getElementById('modalTitle').textContent   = FILM.title;
+  document.getElementById('posterImg').src            = FILM.poster;
+  document.getElementById('posterImg').alt            = FILM.title;
+
+  let shopeeTimer = null;
+
+  function showShopeePopup() {
+    document.getElementById('shopeePopup').classList.add('open');
+  }
+
+  function afterShopeeClick() {
+    // Setelah klik tombol Shopee, langsung buka player
+    setTimeout(() => {
+      document.getElementById('shopeePopup').classList.remove('open');
+      openPlayer();
+    }, 400);
+  }
+
+  function skipShopee() {
+    document.getElementById('shopeePopup').classList.remove('open');
+    openPlayer();
+  }
+
+  function openPlayer() {
+    document.getElementById('playerFrame').src = FILM.embedUrl;
+    document.getElementById('modalOverlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    // Mulai timer Shopee overlay
+    shopeeTimer = setInterval(showShopeeOverlay, SHOPEE_INTERVAL_MS);
+  }
+
+  function closePlayer() {
+    document.getElementById('playerFrame').src = '';
+    document.getElementById('modalOverlay').classList.remove('open');
+    document.getElementById('shopeeOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+    clearInterval(shopeeTimer);
+  }
+
+  function showShopeeOverlay() {
+    document.getElementById('shopeeOverlay').classList.add('open');
+  }
+
+  function closeShopeeOverlay() {
+    document.getElementById('shopeeOverlay').classList.remove('open');
+  }
+
+  function handleOverlayClick(e) {
+    if (e.target === document.getElementById('modalOverlay')) closePlayer();
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closePlayer();
+  });
+</script>
+
+<!-- Adsterra Social Bar -->
+<script src="https://pl29731384.effectivecpmnetwork.com/ab/b0/41/abb041eb17966ba1097154533b483a62.js"></script>
+
+<!-- Adsterra Popunder -->
+<script src="https://pl29731385.effectivecpmnetwork.com/15/c0/7d/15c07d9b4a75b57846ae02f975c02d57.js"></script>
+
+
+   <!-- Histats.com  (div with counter) --><div id="histats_counter"></div>
+<!-- Histats.com  START  (aync)-->
+<script type="text/javascript">var _Hasync= _Hasync|| [];
+_Hasync.push(['Histats.start', '1,5032828,4,1035,150,25,00011111']);
+_Hasync.push(['Histats.fasi', '1']);
+_Hasync.push(['Histats.track_hits', '']);
+(function() {
+var hs = document.createElement('script'); hs.type = 'text/javascript'; hs.async = true;
+hs.src = ('//s10.histats.com/js15_as.js');
+(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(hs);
+})();</script>
+<noscript><a href="/" target="_blank"><img  src="//sstatic1.histats.com/0.gif?5032828&101" alt="" border="0"></a></noscript>
+<!-- Histats.com  END  -->
+
+</body>
+</html>
+
